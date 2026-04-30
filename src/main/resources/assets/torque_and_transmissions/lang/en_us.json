@@ -1,0 +1,13 @@
+{
+  "itemGroup.torque_and_transmissions": "Example Mod Tab",
+  "block.torque_and_transmissions.example_block": "Example Block",
+  "item.torque_and_transmissions.example_item": "Example Item",
+
+  "torque_and_transmissions.configuration.title": "Create: Torque and Transmissions Configs",
+  "torque_and_transmissions.configuration.section.torque_and_transmissions.common.toml": "Create: Torque and Transmissions Configs",
+  "torque_and_transmissions.configuration.section.torque_and_transmissions.common.toml.title": "Create: Torque and Transmissions Configs",
+  "torque_and_transmissions.configuration.items": "Item List",
+  "torque_and_transmissions.configuration.logDirtBlock": "Log Dirt Block",
+  "torque_and_transmissions.configuration.magicNumberIntroduction": "Magic Number Text",
+  "torque_and_transmissions.configuration.magicNumber": "Magic Number"
+}
