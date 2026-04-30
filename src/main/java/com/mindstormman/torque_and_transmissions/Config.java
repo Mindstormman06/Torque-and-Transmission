@@ -18,6 +18,14 @@ public class Config {
             .comment("Maximum target RPM used by accelerator-style controls.")
             .defineInRange("maxTargetRpm", 256, 1, 2048);
 
+    public static final ModConfigSpec.IntValue ACE_MAX_RPM = BUILDER
+            .comment("Maximum RPM cap for the ACE source engine.")
+            .defineInRange("aceMaxRpm", 256, 1, 2048);
+
+    public static final ModConfigSpec.DoubleValue ACE_HORSEPOWER = BUILDER
+            .comment("Base ACE acceleration/deceleration step at load factor 1.0 (RPM per tick).")
+            .defineInRange("aceHorsepower", 4.0D, 0.1D, 512.0D);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     private static boolean isPositiveNumber(final Object obj) {

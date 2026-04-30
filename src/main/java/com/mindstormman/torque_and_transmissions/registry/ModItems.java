@@ -15,6 +15,7 @@ public final class ModItems {
     public static final DeferredItem<BlockItem> TRANSMISSION = ITEMS.registerSimpleBlockItem("transmission", ModBlocks.TRANSMISSION);
     public static final DeferredItem<BlockItem> STICK_SHIFTER = ITEMS.registerSimpleBlockItem("stick_shifter", ModBlocks.STICK_SHIFTER);
     public static final DeferredItem<BlockItem> ACCELERATOR = ITEMS.registerSimpleBlockItem("accelerator", ModBlocks.ACCELERATOR);
+    public static final DeferredItem<BlockItem> ACE_ENGINE = ITEMS.registerSimpleBlockItem("ace_engine", ModBlocks.ACE_ENGINE);
 
     public static final DeferredItem<Item> MECHANICS_WRENCH = ITEMS.register(
             "mechanics_wrench",

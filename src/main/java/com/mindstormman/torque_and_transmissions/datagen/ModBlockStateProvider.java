@@ -2,6 +2,7 @@ package com.mindstormman.torque_and_transmissions.datagen;
 
 import com.mindstormman.torque_and_transmissions.CreateTorqueandTransmissions;
 import com.mindstormman.torque_and_transmissions.content.block.AcceleratorBlock;
+import com.mindstormman.torque_and_transmissions.content.block.AceEngineBlock;
 import com.mindstormman.torque_and_transmissions.content.block.StickShifterBlock;
 import com.mindstormman.torque_and_transmissions.registry.ModBlocks;
 
@@ -67,5 +68,29 @@ public class ModBlockStateProvider extends BlockStateProvider {
                             .build();
                 });
         itemModels().withExistingParent("accelerator", modLoc("block/accelerator"));
+
+        var aceModel = cubeAll(ModBlocks.ACE_ENGINE.get());
+        getVariantBuilder(ModBlocks.ACE_ENGINE.get())
+                .forAllStates(state -> {
+                    Direction facing = state.getValue(AceEngineBlock.FACING);
+                    int xRot = switch (facing) {
+                        case DOWN -> 90;
+                        case UP -> 270;
+                        default -> 0;
+                    };
+                    int yRot = switch (facing) {
+                        case NORTH -> 180;
+                        case SOUTH -> 0;
+                        case WEST -> 90;
+                        case EAST -> 270;
+                        default -> 0;
+                    };
+                    return ConfiguredModel.builder()
+                            .modelFile(aceModel)
+                            .rotationX(xRot)
+                            .rotationY(yRot)
+                            .build();
+                });
+        itemModels().withExistingParent("ace_engine", modLoc("block/ace_engine"));
     }
 }

@@ -2,6 +2,7 @@ package com.mindstormman.torque_and_transmissions.registry;
 
 import com.mindstormman.torque_and_transmissions.CreateTorqueandTransmissions;
 import com.mindstormman.torque_and_transmissions.content.block.AcceleratorBlock;
+import com.mindstormman.torque_and_transmissions.content.block.AceEngineBlock;
 import com.mindstormman.torque_and_transmissions.content.block.StickShifterBlock;
 import com.mindstormman.torque_and_transmissions.content.block.TransmissionBlock;
 
@@ -41,6 +42,14 @@ public final class ModBlocks {
                             .strength(2.5F)
                             .sound(SoundType.METAL)
                             .noOcclusion()));
+
+    public static final DeferredBlock<Block> ACE_ENGINE = BLOCKS.register(
+            "ace_engine",
+            () -> new AceEngineBlock(
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.METAL)
+                            .strength(4.0F)
+                            .sound(SoundType.NETHERITE_BLOCK)));
 
     private ModBlocks() {
     }

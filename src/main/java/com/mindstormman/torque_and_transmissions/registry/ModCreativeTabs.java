@@ -21,6 +21,7 @@ public final class ModCreativeTabs {
                     .icon(() -> ModItems.TRANSMISSION.get().getDefaultInstance())
                     .displayItems((parameters, output) -> {
                         output.accept(ModItems.TRANSMISSION.get());
+                        output.accept(ModItems.ACE_ENGINE.get());
                         output.accept(ModItems.STICK_SHIFTER.get());
                         output.accept(ModItems.ACCELERATOR.get());
                         output.accept(ModItems.MECHANICS_WRENCH.get());

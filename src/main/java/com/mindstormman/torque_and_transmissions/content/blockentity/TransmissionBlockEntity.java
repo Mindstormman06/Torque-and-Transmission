@@ -20,6 +20,7 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
     private boolean reverse;
     private int inputTargetRpm;
     private boolean acceleratorControlled;
+    private boolean aceLinked;
 
     public TransmissionBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModBlockEntities.TRANSMISSION.get(), pos, blockState);
@@ -73,6 +74,17 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         return (int) Math.round(getThrottleFactor() * 100.0D);
     }
 
+    public double getThrottlePosition() {
+        return getThrottleFactor();
+    }
+
+    public double getGearLoadFactor() {
+        if (reverse) {
+            return 1.0D;
+        }
+        return Math.max(1.0D, selectedGear + 1.0D);
+    }
+
     public String getAxisLabel() {
         Direction.Axis axis = getBlockState().getValue(BlockStateProperties.AXIS);
         return switch (axis) {
@@ -97,6 +109,17 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         acceleratorControlled = true;
         inputTargetRpm = clamped;
         markDirtyAndSync();
+        if (!aceLinked) {
+            requestKineticRefresh();
+        }
+    }
+
+    public void setAceLinked(boolean linked) {
+        if (aceLinked == linked) {
+            return;
+        }
+        aceLinked = linked;
+        markDirtyAndSync();
         requestKineticRefresh();
     }
 
@@ -118,7 +141,8 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         if (face == sourceFacing) {
             return 1.0F;
         }
-        return (float) (getEffectiveRatio() * getThrottleFactor());
+        double throttleMultiplier = aceLinked ? 1.0D : getThrottleFactor();
+        return (float) (getEffectiveRatio() * throttleMultiplier);
     }
 
     public void shiftBy(int direction) {
@@ -170,6 +194,7 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         tag.putBoolean("reverse", reverse);
         tag.putInt("inputTargetRpm", inputTargetRpm);
         tag.putBoolean("acceleratorControlled", acceleratorControlled);
+        tag.putBoolean("aceLinked", aceLinked);
     }
 
     @Override
@@ -179,5 +204,6 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         reverse = tag.getBoolean("reverse");
         inputTargetRpm = tag.getInt("inputTargetRpm");
         acceleratorControlled = tag.getBoolean("acceleratorControlled");
+        aceLinked = tag.getBoolean("aceLinked");
     }
 }

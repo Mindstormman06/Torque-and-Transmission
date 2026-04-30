@@ -1,6 +1,7 @@
 {
   "itemGroup.torque_and_transmissions.main": "Create: Torque and Transmissions",
   "block.torque_and_transmissions.transmission": "Transmission",
+  "block.torque_and_transmissions.ace_engine": "ACE Engine",
   "block.torque_and_transmissions.stick_shifter": "Stick Shifter",
   "block.torque_and_transmissions.accelerator": "Accelerator",
   "item.torque_and_transmissions.mechanics_wrench": "Mechanic's Wrench",
@@ -11,15 +12,21 @@
   "torque_and_transmissions.configuration.gearRatios": "Forward Gear Ratios",
   "torque_and_transmissions.configuration.reverseRatio": "Reverse Gear Ratio",
   "torque_and_transmissions.configuration.maxTargetRpm": "Maximum Target RPM",
+  "torque_and_transmissions.configuration.aceMaxRpm": "ACE Maximum RPM",
+  "torque_and_transmissions.configuration.aceHorsepower": "ACE Horsepower",
 
   "message.torque_and_transmissions.shifter_not_linked": "Shifter is not linked to a transmission.",
   "message.torque_and_transmissions.link_target_missing": "Linked transmission is missing.",
   "message.torque_and_transmissions.shifted": "Shifted to %s (ratio %s, stress x%s, output %s RPM, throttle %s%%)",
   "message.torque_and_transmissions.transmission_status": "Transmission %s (ratio %s, stress x%s, output %s RPM, throttle %s%%, axis %s, source %s)",
   "message.torque_and_transmissions.wrench_stored": "Stored transmission link target.",
+  "message.torque_and_transmissions.wrench_stored_clutch": "Stored clutch link target.",
   "message.torque_and_transmissions.wrench_missing_target": "Wrench does not contain a saved transmission.",
   "message.torque_and_transmissions.wrench_linked": "Linked shifter to saved transmission.",
   "message.torque_and_transmissions.wrench_linked_accelerator": "Linked accelerator to saved transmission.",
+  "message.torque_and_transmissions.wrench_linked_ace_full": "Linked ACE to saved transmission and clutch.",
+  "message.torque_and_transmissions.wrench_linked_ace_no_clutch": "Linked ACE to saved transmission (no clutch saved).",
   "message.torque_and_transmissions.accelerator_not_linked": "Accelerator is not linked to a transmission.",
-  "message.torque_and_transmissions.accelerator_set_rpm": "Accelerator target set to %s%%."
+  "message.torque_and_transmissions.accelerator_set_rpm": "Accelerator target RPM set to %s (%s%%).",
+  "message.torque_and_transmissions.ace_status": "ACE %s RPM -> %s target, HP %s, throttle %s, load %s, clutch %s"
 }

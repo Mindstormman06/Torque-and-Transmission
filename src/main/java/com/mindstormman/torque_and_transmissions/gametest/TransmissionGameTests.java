@@ -2,6 +2,7 @@ package com.mindstormman.torque_and_transmissions.gametest;
 
 import com.mindstormman.torque_and_transmissions.CreateTorqueandTransmissions;
 import com.mindstormman.torque_and_transmissions.content.blockentity.AcceleratorBlockEntity;
+import com.mindstormman.torque_and_transmissions.content.blockentity.AceEngineBlockEntity;
 import com.mindstormman.torque_and_transmissions.content.blockentity.StickShifterBlockEntity;
 import com.mindstormman.torque_and_transmissions.content.blockentity.TransmissionBlockEntity;
 import com.mindstormman.torque_and_transmissions.registry.ModBlocks;
@@ -107,6 +108,46 @@ public final class TransmissionGameTests {
             }
             if (transmission.getEffectiveOutputRpm() <= 0) {
                 throw new AssertionError("Transmission output RPM should be positive in forward gear.");
+            }
+        });
+    }
+
+    @GameTest(template = "empty5x5", templateNamespace = "minecraft")
+    public static void aceNoLoadRampUsesClutchEngagedFactor(GameTestHelper helper) {
+        float next = AceEngineBlockEntity.computeNextRpm(0.0F, 256.0F, 8.0F, 1.0D, 5.0D, true);
+        helper.succeedIf(() -> {
+            if (Math.abs(next - 8.0F) > 0.001F) {
+                throw new AssertionError("Expected no-load ramp to use full horsepower step when clutch is engaged.");
+            }
+        });
+    }
+
+    @GameTest(template = "empty5x5", templateNamespace = "minecraft")
+    public static void aceLoadedRampUsesGearLoadWhenClutchDisengaged(GameTestHelper helper) {
+        float next = AceEngineBlockEntity.computeNextRpm(0.0F, 256.0F, 8.0F, 1.0D, 4.0D, false);
+        helper.succeedIf(() -> {
+            if (Math.abs(next - 2.0F) > 0.001F) {
+                throw new AssertionError("Expected loaded ramp to divide horsepower by gear load factor.");
+            }
+        });
+    }
+
+    @GameTest(template = "empty5x5", templateNamespace = "minecraft")
+    public static void aceDecayUsesSameStepAsRamp(GameTestHelper helper) {
+        float next = AceEngineBlockEntity.computeNextRpm(100.0F, 256.0F, 8.0F, 0.25D, 3.0D, true);
+        helper.succeedIf(() -> {
+            if (Math.abs(next - 92.0F) > 0.001F) {
+                throw new AssertionError("Expected decay to use same horsepower step rule as acceleration.");
+            }
+        });
+    }
+
+    @GameTest(template = "empty5x5", templateNamespace = "minecraft")
+    public static void aceRpmClampsToMax(GameTestHelper helper) {
+        float next = AceEngineBlockEntity.computeNextRpm(250.0F, 256.0F, 20.0F, 1.0D, 1.0D, true);
+        helper.succeedIf(() -> {
+            if (Math.abs(next - 256.0F) > 0.001F) {
+                throw new AssertionError("Expected ACE RPM to clamp to configured maximum.");
             }
         });
     }
