@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " I ",
+    " S ",
+    " B "
+  ],
+  "key": {
+    "I": { "item": "minecraft:iron_ingot" },
+    "S": { "item": "minecraft:stick" },
+    "B": { "item": "minecraft:smooth_stone_slab" }
+  },
+  "result": {
+    "item": "torque_and_transmissions:stick_shifter",
+    "count": 1
+  }
+}

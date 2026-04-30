@@ -1,6 +1,5 @@
 package com.mindstormman.torque_and_transmissions;
 
-import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
@@ -16,16 +15,11 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 @EventBusSubscriber(modid = CreateTorqueandTransmissions.MODID, value = Dist.CLIENT)
 public class CreateTorqueandTransmissionsClient {
     public CreateTorqueandTransmissionsClient(ModContainer container) {
-        // Allows NeoForge to create a config screen for this mod's configs.
-        // The config screen is accessed by going to the Mods screen > clicking on your mod > clicking on config.
-        // Do not forget to add translations for your config options to the en_us.json file.
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     }
 
     @SubscribeEvent
     static void onClientSetup(FMLClientSetupEvent event) {
-        // Some client setup code
-        CreateTorqueandTransmissions.LOGGER.info("HELLO FROM CLIENT SETUP");
-        CreateTorqueandTransmissions.LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+        CreateTorqueandTransmissions.LOGGER.info("Create Torque and Transmissions client setup complete.");
     }
 }

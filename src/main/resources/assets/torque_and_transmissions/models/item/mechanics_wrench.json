@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "torque_and_transmissions:item/mechanics_wrench"
+  }
+}

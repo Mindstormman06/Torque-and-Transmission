@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "torque_and_transmissions:block/stick_shifter", "y": 180 },
+    "facing=south": { "model": "torque_and_transmissions:block/stick_shifter" },
+    "facing=west": { "model": "torque_and_transmissions:block/stick_shifter", "y": 90 },
+    "facing=east": { "model": "torque_and_transmissions:block/stick_shifter", "y": 270 }
+  }
+}
