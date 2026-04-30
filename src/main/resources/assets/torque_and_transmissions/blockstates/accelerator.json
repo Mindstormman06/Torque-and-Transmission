@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "torque_and_transmissions:block/accelerator", "y": 180 },
+    "facing=south": { "model": "torque_and_transmissions:block/accelerator" },
+    "facing=west": { "model": "torque_and_transmissions:block/accelerator", "y": 90 },
+    "facing=east": { "model": "torque_and_transmissions:block/accelerator", "y": 270 }
+  }
+}

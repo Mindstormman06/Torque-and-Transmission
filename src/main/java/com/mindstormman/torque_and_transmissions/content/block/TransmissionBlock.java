@@ -69,7 +69,11 @@ public class TransmissionBlock extends AbstractEncasedShaftBlock implements IBE<
                             "message.torque_and_transmissions.transmission_status",
                             transmission.getGearLabel(),
                             String.format("%.2f", transmission.getEffectiveRatio()),
-                            String.format("%.2f", transmission.getStressMultiplier())),
+                            String.format("%.2f", transmission.getStressMultiplier()),
+                            transmission.getEffectiveOutputRpm(),
+                            transmission.getThrottlePercent(),
+                            transmission.getAxisLabel(),
+                            transmission.getSourceLabel()),
                     true);
         }
         return InteractionResult.CONSUME;

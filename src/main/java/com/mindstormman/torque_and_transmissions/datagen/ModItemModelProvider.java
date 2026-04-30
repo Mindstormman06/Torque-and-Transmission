@@ -17,6 +17,7 @@ public class ModItemModelProvider extends ItemModelProvider {
     protected void registerModels() {
         withExistingParent(ModItems.TRANSMISSION.getId().getPath(), modLoc("block/" + ModItems.TRANSMISSION.getId().getPath()));
         withExistingParent(ModItems.STICK_SHIFTER.getId().getPath(), modLoc("block/" + ModItems.STICK_SHIFTER.getId().getPath()));
+        withExistingParent(ModItems.ACCELERATOR.getId().getPath(), modLoc("block/" + ModItems.ACCELERATOR.getId().getPath()));
         singleTexture(
                 ModItems.MECHANICS_WRENCH.getId().getPath(),
                 ResourceLocation.withDefaultNamespace("item/generated"),

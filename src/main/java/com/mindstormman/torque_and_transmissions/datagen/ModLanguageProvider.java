@@ -18,15 +18,19 @@ public class ModLanguageProvider extends LanguageProvider {
 
         addBlock(ModBlocks.TRANSMISSION, "Transmission");
         addBlock(ModBlocks.STICK_SHIFTER, "Stick Shifter");
+        addBlock(ModBlocks.ACCELERATOR, "Accelerator");
         addItem(ModItems.MECHANICS_WRENCH, "Mechanic's Wrench");
 
         add("message.torque_and_transmissions.shifter_not_linked", "Shifter is not linked to a transmission.");
         add("message.torque_and_transmissions.link_target_missing", "Linked transmission is missing.");
-        add("message.torque_and_transmissions.shifted", "Shifted to %s (ratio %s, stress x%s)");
-        add("message.torque_and_transmissions.transmission_status", "Transmission %s (ratio %s, stress x%s)");
+        add("message.torque_and_transmissions.shifted", "Shifted to %s (ratio %s, stress x%s, output %s RPM, throttle %s%%)");
+        add("message.torque_and_transmissions.transmission_status", "Transmission %s (ratio %s, stress x%s, output %s RPM, throttle %s%%, axis %s, source %s)");
         add("message.torque_and_transmissions.wrench_stored", "Stored transmission link target.");
         add("message.torque_and_transmissions.wrench_missing_target", "Wrench does not contain a saved transmission.");
         add("message.torque_and_transmissions.wrench_linked", "Linked shifter to saved transmission.");
+        add("message.torque_and_transmissions.wrench_linked_accelerator", "Linked accelerator to saved transmission.");
+        add("message.torque_and_transmissions.accelerator_not_linked", "Accelerator is not linked to a transmission.");
+        add("message.torque_and_transmissions.accelerator_set_rpm", "Accelerator target RPM set to %s (%s%%).");
 
         add("torque_and_transmissions.configuration.title", "Create: Torque and Transmissions Configs");
         add("torque_and_transmissions.configuration.section.torque_and_transmissions.common.toml", "Gameplay");

@@ -2,6 +2,7 @@
   "itemGroup.torque_and_transmissions.main": "Create: Torque and Transmissions",
   "block.torque_and_transmissions.transmission": "Transmission",
   "block.torque_and_transmissions.stick_shifter": "Stick Shifter",
+  "block.torque_and_transmissions.accelerator": "Accelerator",
   "item.torque_and_transmissions.mechanics_wrench": "Mechanic's Wrench",
 
   "torque_and_transmissions.configuration.title": "Create: Torque and Transmissions Configs",
@@ -13,9 +14,12 @@
 
   "message.torque_and_transmissions.shifter_not_linked": "Shifter is not linked to a transmission.",
   "message.torque_and_transmissions.link_target_missing": "Linked transmission is missing.",
-  "message.torque_and_transmissions.shifted": "Shifted to %s (ratio %s, stress x%s)",
-  "message.torque_and_transmissions.transmission_status": "Transmission %s (ratio %s, stress x%s)",
+  "message.torque_and_transmissions.shifted": "Shifted to %s (ratio %s, stress x%s, output %s RPM, throttle %s%%)",
+  "message.torque_and_transmissions.transmission_status": "Transmission %s (ratio %s, stress x%s, output %s RPM, throttle %s%%, axis %s, source %s)",
   "message.torque_and_transmissions.wrench_stored": "Stored transmission link target.",
   "message.torque_and_transmissions.wrench_missing_target": "Wrench does not contain a saved transmission.",
-  "message.torque_and_transmissions.wrench_linked": "Linked shifter to saved transmission."
+  "message.torque_and_transmissions.wrench_linked": "Linked shifter to saved transmission.",
+  "message.torque_and_transmissions.wrench_linked_accelerator": "Linked accelerator to saved transmission.",
+  "message.torque_and_transmissions.accelerator_not_linked": "Accelerator is not linked to a transmission.",
+  "message.torque_and_transmissions.accelerator_set_rpm": "Accelerator target set to %s%%."
 }

@@ -1,6 +1,7 @@
 package com.mindstormman.torque_and_transmissions.registry;
 
 import com.mindstormman.torque_and_transmissions.CreateTorqueandTransmissions;
+import com.mindstormman.torque_and_transmissions.content.blockentity.AcceleratorBlockEntity;
 import com.mindstormman.torque_and_transmissions.content.blockentity.StickShifterBlockEntity;
 import com.mindstormman.torque_and_transmissions.content.blockentity.TransmissionBlockEntity;
 
@@ -20,6 +21,10 @@ public final class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<StickShifterBlockEntity>> STICK_SHIFTER = BLOCK_ENTITIES.register(
             "stick_shifter",
             () -> BlockEntityType.Builder.of(StickShifterBlockEntity::new, ModBlocks.STICK_SHIFTER.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AcceleratorBlockEntity>> ACCELERATOR = BLOCK_ENTITIES.register(
+            "accelerator",
+            () -> BlockEntityType.Builder.of(AcceleratorBlockEntity::new, ModBlocks.ACCELERATOR.get()).build(null));
 
     private ModBlockEntities() {
     }

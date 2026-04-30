@@ -1,6 +1,8 @@
 package com.mindstormman.torque_and_transmissions.registry;
 
 import com.mindstormman.torque_and_transmissions.CreateTorqueandTransmissions;
+import com.mindstormman.torque_and_transmissions.network.AcceleratorAdjustPayload;
+import com.mindstormman.torque_and_transmissions.network.AcceleratorAdjustPayloadHandler;
 import com.mindstormman.torque_and_transmissions.network.ShiftRequestPayload;
 import com.mindstormman.torque_and_transmissions.network.ShiftRequestPayloadHandler;
 
@@ -23,5 +25,6 @@ public final class ModNetworking {
     public static void registerPayloads(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event.registrar("1");
         registrar.playToServer(ShiftRequestPayload.TYPE, ShiftRequestPayload.STREAM_CODEC, ShiftRequestPayloadHandler::handle);
+        registrar.playToServer(AcceleratorAdjustPayload.TYPE, AcceleratorAdjustPayload.STREAM_CODEC, AcceleratorAdjustPayloadHandler::handle);
     }
 }

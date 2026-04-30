@@ -41,6 +41,17 @@ public class ModRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_stick", has(Items.STICK))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ModItems.ACCELERATOR)
+                .pattern(" R ")
+                .pattern("ICI")
+                .pattern(" B ")
+                .define('R', Items.REDSTONE)
+                .define('I', Items.IRON_INGOT)
+                .define('C', Items.COPPER_INGOT)
+                .define('B', Items.IRON_BLOCK)
+                .unlockedBy("has_redstone", has(Items.REDSTONE))
+                .save(recipeOutput);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ModItems.MECHANICS_WRENCH)
                 .pattern(" II")
                 .pattern(" SI")

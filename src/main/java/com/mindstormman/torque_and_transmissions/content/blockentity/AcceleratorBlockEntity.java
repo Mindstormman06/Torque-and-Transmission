@@ -2,6 +2,7 @@ package com.mindstormman.torque_and_transmissions.content.blockentity;
 
 import java.util.Optional;
 
+import com.mindstormman.torque_and_transmissions.Config;
 import com.mindstormman.torque_and_transmissions.registry.ModBlockEntities;
 
 import net.minecraft.core.BlockPos;
@@ -11,14 +12,22 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class StickShifterBlockEntity extends BlockEntity {
+public class AcceleratorBlockEntity extends BlockEntity {
+    private static final int DEFAULT_RPM_STEP = 64;
+
+    private int targetRpm;
     private BlockPos linkedTransmissionPos;
 
-    public StickShifterBlockEntity(BlockPos pos, BlockState blockState) {
-        super(ModBlockEntities.STICK_SHIFTER.get(), pos, blockState);
+    public AcceleratorBlockEntity(BlockPos pos, BlockState blockState) {
+        super(ModBlockEntities.ACCELERATOR.get(), pos, blockState);
+    }
+
+    public int getTargetRpm() {
+        return targetRpm;
     }
 
     public Optional<BlockPos> getLinkedTransmissionPos() {
@@ -27,31 +36,41 @@ public class StickShifterBlockEntity extends BlockEntity {
 
     public void setLinkedTransmissionPos(BlockPos pos) {
         linkedTransmissionPos = pos;
+        pushTargetRpmToTransmission();
         markDirtyAndSync();
     }
 
-    public boolean applyShiftRequest(ServerPlayer player, int direction) {
+    public void setTargetRpm(int rpm) {
+        int clamped = Mth.clamp(rpm, 0, Config.MAX_TARGET_RPM.get());
+        if (targetRpm == clamped) {
+            return;
+        }
+        targetRpm = clamped;
+        pushTargetRpmToTransmission();
+        markDirtyAndSync();
+    }
+
+    public void applyRpmDelta(ServerPlayer player, int delta) {
         if (level == null || linkedTransmissionPos == null) {
-            player.displayClientMessage(Component.translatable("message.torque_and_transmissions.shifter_not_linked"), true);
-            return false;
+            player.displayClientMessage(Component.translatable("message.torque_and_transmissions.accelerator_not_linked"), true);
+            return;
         }
 
-        if (!(level.getBlockEntity(linkedTransmissionPos) instanceof TransmissionBlockEntity transmission)) {
-            player.displayClientMessage(Component.translatable("message.torque_and_transmissions.link_target_missing"), true);
-            return false;
-        }
-
-        transmission.shiftBy(direction);
+        int step = delta == 0 ? 0 : Integer.signum(delta) * DEFAULT_RPM_STEP;
+        setTargetRpm(targetRpm + step);
+        int percent = (int) Math.round((targetRpm * 100.0D) / Math.max(1, Config.MAX_TARGET_RPM.get()));
         player.displayClientMessage(
-                Component.translatable(
-                        "message.torque_and_transmissions.shifted",
-                        transmission.getGearLabel(),
-                        String.format("%.2f", transmission.getEffectiveRatio()),
-                        String.format("%.2f", transmission.getStressMultiplier()),
-                        transmission.getEffectiveOutputRpm(),
-                        transmission.getThrottlePercent()),
+                Component.translatable("message.torque_and_transmissions.accelerator_set_rpm", targetRpm, percent),
                 true);
-        return true;
+    }
+
+    private void pushTargetRpmToTransmission() {
+        if (level == null || linkedTransmissionPos == null) {
+            return;
+        }
+        if (level.getBlockEntity(linkedTransmissionPos) instanceof TransmissionBlockEntity transmission) {
+            transmission.setInputTargetRpm(targetRpm);
+        }
     }
 
     private void markDirtyAndSync() {
@@ -64,6 +83,7 @@ public class StickShifterBlockEntity extends BlockEntity {
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        targetRpm = tag.getInt("targetRpm");
         if (tag.contains("linkedTransmission")) {
             linkedTransmissionPos = BlockPos.of(tag.getLong("linkedTransmission"));
         } else {
@@ -74,6 +94,7 @@ public class StickShifterBlockEntity extends BlockEntity {
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        tag.putInt("targetRpm", targetRpm);
         if (linkedTransmissionPos != null) {
             tag.putLong("linkedTransmission", linkedTransmissionPos.asLong());
         }
@@ -82,6 +103,7 @@ public class StickShifterBlockEntity extends BlockEntity {
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
+        tag.putInt("targetRpm", targetRpm);
         if (linkedTransmissionPos != null) {
             tag.putLong("linkedTransmission", linkedTransmissionPos.asLong());
         }
@@ -91,6 +113,7 @@ public class StickShifterBlockEntity extends BlockEntity {
     @Override
     public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
         super.handleUpdateTag(tag, registries);
+        targetRpm = tag.getInt("targetRpm");
         if (tag.contains("linkedTransmission")) {
             linkedTransmissionPos = BlockPos.of(tag.getLong("linkedTransmission"));
         } else {
@@ -107,8 +130,11 @@ public class StickShifterBlockEntity extends BlockEntity {
     public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider lookupProvider) {
         super.onDataPacket(net, pkt, lookupProvider);
         CompoundTag tag = pkt.getTag();
-        if (tag != null && tag.contains("linkedTransmission")) {
-            linkedTransmissionPos = BlockPos.of(tag.getLong("linkedTransmission"));
+        if (tag != null) {
+            targetRpm = tag.getInt("targetRpm");
+            if (tag.contains("linkedTransmission")) {
+                linkedTransmissionPos = BlockPos.of(tag.getLong("linkedTransmission"));
+            }
         }
     }
 }

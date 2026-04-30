@@ -22,6 +22,7 @@ public final class ModCreativeTabs {
                     .displayItems((parameters, output) -> {
                         output.accept(ModItems.TRANSMISSION.get());
                         output.accept(ModItems.STICK_SHIFTER.get());
+                        output.accept(ModItems.ACCELERATOR.get());
                         output.accept(ModItems.MECHANICS_WRENCH.get());
                     })
                     .build());

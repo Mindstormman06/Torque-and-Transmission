@@ -12,11 +12,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class TransmissionBlockEntity extends SplitShaftBlockEntity {
     private int selectedGear;
     private boolean reverse;
+    private int inputTargetRpm;
+    private boolean acceleratorControlled;
 
     public TransmissionBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModBlockEntities.TRANSMISSION.get(), pos, blockState);
@@ -58,6 +61,53 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         return 1.0D / ratioMagnitude;
     }
 
+    public int getInputTargetRpm() {
+        return inputTargetRpm;
+    }
+
+    public int getEffectiveOutputRpm() {
+        return (int) Math.round(getInputTargetRpm() * getEffectiveRatio());
+    }
+
+    public int getThrottlePercent() {
+        return (int) Math.round(getThrottleFactor() * 100.0D);
+    }
+
+    public String getAxisLabel() {
+        Direction.Axis axis = getBlockState().getValue(BlockStateProperties.AXIS);
+        return switch (axis) {
+            case X -> "east-west";
+            case Z -> "north-south";
+            case Y -> "vertical";
+        };
+    }
+
+    public String getSourceLabel() {
+        if (!hasSource()) {
+            return "none";
+        }
+        return getSourceFacing().getName();
+    }
+
+    public void setInputTargetRpm(int rpm) {
+        int clamped = Math.clamp(rpm, 0, Config.MAX_TARGET_RPM.get());
+        if (acceleratorControlled && inputTargetRpm == clamped) {
+            return;
+        }
+        acceleratorControlled = true;
+        inputTargetRpm = clamped;
+        markDirtyAndSync();
+        requestKineticRefresh();
+    }
+
+    private double getThrottleFactor() {
+        if (!acceleratorControlled) {
+            return 1.0D;
+        }
+        int maxRpm = Math.max(1, Config.MAX_TARGET_RPM.get());
+        return Math.clamp((double) inputTargetRpm / maxRpm, 0.0D, 1.0D);
+    }
+
     @Override
     public float getRotationSpeedModifier(Direction face) {
         if (!hasSource()) {
@@ -68,7 +118,7 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         if (face == sourceFacing) {
             return 1.0F;
         }
-        return (float) getEffectiveRatio();
+        return (float) (getEffectiveRatio() * getThrottleFactor());
     }
 
     public void shiftBy(int direction) {
@@ -118,6 +168,8 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         super.write(tag, registries, clientPacket);
         tag.putInt("selectedGear", selectedGear);
         tag.putBoolean("reverse", reverse);
+        tag.putInt("inputTargetRpm", inputTargetRpm);
+        tag.putBoolean("acceleratorControlled", acceleratorControlled);
     }
 
     @Override
@@ -125,5 +177,7 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         super.read(tag, registries, clientPacket);
         selectedGear = tag.getInt("selectedGear");
         reverse = tag.getBoolean("reverse");
+        inputTargetRpm = tag.getInt("inputTargetRpm");
+        acceleratorControlled = tag.getBoolean("acceleratorControlled");
     }
 }

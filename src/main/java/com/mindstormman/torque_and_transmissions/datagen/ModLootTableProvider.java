@@ -29,6 +29,7 @@ public class ModLootTableProvider extends LootTableProvider {
         protected void generate() {
             dropSelf(ModBlocks.TRANSMISSION.get());
             dropSelf(ModBlocks.STICK_SHIFTER.get());
+            dropSelf(ModBlocks.ACCELERATOR.get());
         }
 
         @Override

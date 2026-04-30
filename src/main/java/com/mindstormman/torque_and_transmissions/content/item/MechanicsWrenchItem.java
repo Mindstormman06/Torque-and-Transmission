@@ -2,6 +2,7 @@ package com.mindstormman.torque_and_transmissions.content.item;
 
 import java.util.Optional;
 
+import com.mindstormman.torque_and_transmissions.content.blockentity.AcceleratorBlockEntity;
 import com.mindstormman.torque_and_transmissions.content.blockentity.StickShifterBlockEntity;
 import com.mindstormman.torque_and_transmissions.content.blockentity.TransmissionBlockEntity;
 
@@ -49,6 +50,22 @@ public class MechanicsWrenchItem extends Item {
             if (!level.isClientSide() && context.getPlayer() != null) {
                 shifter.setLinkedTransmissionPos(storedPos.get());
                 context.getPlayer().displayClientMessage(Component.translatable("message.torque_and_transmissions.wrench_linked"), true);
+            }
+            return InteractionResult.sidedSuccess(level.isClientSide());
+        }
+
+        if (level.getBlockEntity(clickedPos) instanceof AcceleratorBlockEntity accelerator) {
+            Optional<BlockPos> storedPos = getStoredTransmissionPos(stack);
+            if (storedPos.isEmpty()) {
+                if (!level.isClientSide() && context.getPlayer() != null) {
+                    context.getPlayer().displayClientMessage(Component.translatable("message.torque_and_transmissions.wrench_missing_target"), true);
+                }
+                return InteractionResult.sidedSuccess(level.isClientSide());
+            }
+
+            if (!level.isClientSide() && context.getPlayer() != null) {
+                accelerator.setLinkedTransmissionPos(storedPos.get());
+                context.getPlayer().displayClientMessage(Component.translatable("message.torque_and_transmissions.wrench_linked_accelerator"), true);
             }
             return InteractionResult.sidedSuccess(level.isClientSide());
         }

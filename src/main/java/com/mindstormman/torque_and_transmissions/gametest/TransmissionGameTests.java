@@ -1,6 +1,7 @@
 package com.mindstormman.torque_and_transmissions.gametest;
 
 import com.mindstormman.torque_and_transmissions.CreateTorqueandTransmissions;
+import com.mindstormman.torque_and_transmissions.content.blockentity.AcceleratorBlockEntity;
 import com.mindstormman.torque_and_transmissions.content.blockentity.StickShifterBlockEntity;
 import com.mindstormman.torque_and_transmissions.content.blockentity.TransmissionBlockEntity;
 import com.mindstormman.torque_and_transmissions.registry.ModBlocks;
@@ -78,6 +79,34 @@ public final class TransmissionGameTests {
             }
             if (Math.abs(outgoingModifier) <= 0.0F) {
                 throw new AssertionError("Outgoing side should apply a non-zero gear ratio modifier.");
+            }
+        });
+    }
+
+    @GameTest(template = "empty5x5", templateNamespace = "minecraft")
+    public static void acceleratorLinkAndRpmAffectsTransmissionOutput(GameTestHelper helper) {
+        BlockPos transmissionPos = new BlockPos(1, 1, 1);
+        BlockPos acceleratorPos = new BlockPos(2, 1, 1);
+
+        helper.setBlock(transmissionPos, ModBlocks.TRANSMISSION.get());
+        helper.setBlock(acceleratorPos, ModBlocks.ACCELERATOR.get());
+
+        TransmissionBlockEntity transmission = (TransmissionBlockEntity) helper.getBlockEntity(transmissionPos);
+        AcceleratorBlockEntity accelerator = (AcceleratorBlockEntity) helper.getBlockEntity(acceleratorPos);
+
+        accelerator.setLinkedTransmissionPos(helper.absolutePos(transmissionPos));
+        accelerator.setTargetRpm(200);
+        transmission.shiftBy(1);
+
+        helper.succeedIf(() -> {
+            if (accelerator.getTargetRpm() != 200) {
+                throw new AssertionError("Accelerator target RPM should remain set.");
+            }
+            if (transmission.getInputTargetRpm() != 200) {
+                throw new AssertionError("Transmission should receive linked accelerator target RPM.");
+            }
+            if (transmission.getEffectiveOutputRpm() <= 0) {
+                throw new AssertionError("Transmission output RPM should be positive in forward gear.");
             }
         });
     }

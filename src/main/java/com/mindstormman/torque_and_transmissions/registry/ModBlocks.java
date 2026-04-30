@@ -1,6 +1,7 @@
 package com.mindstormman.torque_and_transmissions.registry;
 
 import com.mindstormman.torque_and_transmissions.CreateTorqueandTransmissions;
+import com.mindstormman.torque_and_transmissions.content.block.AcceleratorBlock;
 import com.mindstormman.torque_and_transmissions.content.block.StickShifterBlock;
 import com.mindstormman.torque_and_transmissions.content.block.TransmissionBlock;
 
@@ -26,6 +27,15 @@ public final class ModBlocks {
     public static final DeferredBlock<Block> STICK_SHIFTER = BLOCKS.register(
             "stick_shifter",
             () -> new StickShifterBlock(
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.METAL)
+                            .strength(2.5F)
+                            .sound(SoundType.METAL)
+                            .noOcclusion()));
+
+    public static final DeferredBlock<Block> ACCELERATOR = BLOCKS.register(
+            "accelerator",
+            () -> new AcceleratorBlock(
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.METAL)
                             .strength(2.5F)
