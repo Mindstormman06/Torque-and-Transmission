@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=north": { "model": "torque_and_transmissions:block/ace_engine", "y": 180 },
+    "facing=south": { "model": "torque_and_transmissions:block/ace_engine" },
+    "facing=west": { "model": "torque_and_transmissions:block/ace_engine", "y": 90 },
+    "facing=east": { "model": "torque_and_transmissions:block/ace_engine", "y": 270 },
+    "facing=up": { "model": "torque_and_transmissions:block/ace_engine", "x": 270 },
+    "facing=down": { "model": "torque_and_transmissions:block/ace_engine", "x": 90 }
+  }
+}
