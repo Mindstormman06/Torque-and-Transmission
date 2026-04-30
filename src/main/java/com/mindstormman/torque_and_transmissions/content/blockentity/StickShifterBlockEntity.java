@@ -46,7 +46,8 @@ public class StickShifterBlockEntity extends BlockEntity {
                 Component.translatable(
                         "message.torque_and_transmissions.shifted",
                         transmission.getGearLabel(),
-                        String.format("%.2f", transmission.getEffectiveRatio())),
+                        String.format("%.2f", transmission.getEffectiveRatio()),
+                        String.format("%.2f", transmission.getStressMultiplier())),
                 true);
         return true;
     }

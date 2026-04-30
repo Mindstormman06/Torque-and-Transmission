@@ -1,58 +1,60 @@
 package com.mindstormman.torque_and_transmissions.content.block;
 
 import com.mindstormman.torque_and_transmissions.content.blockentity.TransmissionBlockEntity;
+import com.mindstormman.torque_and_transmissions.registry.ModBlockEntities;
+import com.simibubi.create.content.kinetics.RotationPropagator;
+import com.simibubi.create.content.kinetics.base.AbstractEncasedShaftBlock;
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import com.simibubi.create.foundation.block.IBE;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.ticks.TickPriority;
 
-public class TransmissionBlock extends Block implements EntityBlock {
-    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
-
+public class TransmissionBlock extends AbstractEncasedShaftBlock implements IBE<TransmissionBlockEntity> {
     public TransmissionBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, net.minecraft.core.Direction.NORTH));
-    }
-
-    @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
-    }
-
-    @Override
-    public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
-    }
-
-    @Override
-    protected BlockState rotate(BlockState state, Rotation rotation) {
-        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
-    }
-
-    @Override
-    protected BlockState mirror(BlockState state, Mirror mirror) {
-        return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
     @Override
     protected RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
+    }
+
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        Direction.Axis preferredAxis = getPreferredAxis(context);
+        Direction.Axis axis;
+
+        if (preferredAxis != null) {
+            axis = preferredAxis;
+        } else {
+            Direction clickedFace = context.getClickedFace();
+            if (clickedFace.getAxis() == Direction.Axis.Y) {
+                // When placing on floor/ceiling, default to a horizontal shaft axis.
+                axis = context.getHorizontalDirection().getAxis();
+            } else {
+                axis = clickedFace.getAxis();
+            }
+        }
+
+        if (context.getPlayer() != null && context.getPlayer().isShiftKeyDown()) {
+            axis = context.getClickedFace().getAxis();
+        }
+
+        return defaultBlockState().setValue(AXIS, axis);
     }
 
     @Override
@@ -66,15 +68,38 @@ public class TransmissionBlock extends Block implements EntityBlock {
                     Component.translatable(
                             "message.torque_and_transmissions.transmission_status",
                             transmission.getGearLabel(),
-                            String.format("%.2f", transmission.getEffectiveRatio())),
+                            String.format("%.2f", transmission.getEffectiveRatio()),
+                            String.format("%.2f", transmission.getStressMultiplier())),
                     true);
         }
         return InteractionResult.CONSUME;
     }
 
+    public void refreshKineticNetwork(Level level, BlockPos pos) {
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (!(blockEntity instanceof KineticBlockEntity kineticBlockEntity)) {
+            return;
+        }
+        RotationPropagator.handleRemoved(level, pos, kineticBlockEntity);
+        level.scheduleTick(pos, this, 1, TickPriority.EXTREMELY_HIGH);
+    }
+
     @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new TransmissionBlockEntity(pos, state);
+    public void tick(BlockState state, ServerLevel level, BlockPos pos, net.minecraft.util.RandomSource random) {
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof KineticBlockEntity kineticBlockEntity) {
+            RotationPropagator.handleAdded(level, pos, kineticBlockEntity);
+        }
+    }
+
+    @Override
+    public Class<TransmissionBlockEntity> getBlockEntityClass() {
+        return TransmissionBlockEntity.class;
+    }
+
+    @Override
+    public BlockEntityType<? extends TransmissionBlockEntity> getBlockEntityType() {
+        return ModBlockEntities.TRANSMISSION.get();
     }
 
     @Override

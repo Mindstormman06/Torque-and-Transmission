@@ -1,8 +1,7 @@
 {
   "variants": {
-    "facing=north": { "model": "torque_and_transmissions:block/transmission", "y": 180 },
-    "facing=south": { "model": "torque_and_transmissions:block/transmission" },
-    "facing=west": { "model": "torque_and_transmissions:block/transmission", "y": 90 },
-    "facing=east": { "model": "torque_and_transmissions:block/transmission", "y": 270 }
+    "axis=x": { "model": "torque_and_transmissions:block/transmission", "x": 90, "y": 90 },
+    "axis=y": { "model": "torque_and_transmissions:block/transmission" },
+    "axis=z": { "model": "torque_and_transmissions:block/transmission", "x": 90 }
   }
 }

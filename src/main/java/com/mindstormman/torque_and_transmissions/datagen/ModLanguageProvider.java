@@ -22,8 +22,8 @@ public class ModLanguageProvider extends LanguageProvider {
 
         add("message.torque_and_transmissions.shifter_not_linked", "Shifter is not linked to a transmission.");
         add("message.torque_and_transmissions.link_target_missing", "Linked transmission is missing.");
-        add("message.torque_and_transmissions.shifted", "Shifted to %s (ratio %s)");
-        add("message.torque_and_transmissions.transmission_status", "Transmission %s (ratio %s)");
+        add("message.torque_and_transmissions.shifted", "Shifted to %s (ratio %s, stress x%s)");
+        add("message.torque_and_transmissions.transmission_status", "Transmission %s (ratio %s, stress x%s)");
         add("message.torque_and_transmissions.wrench_stored", "Stored transmission link target.");
         add("message.torque_and_transmissions.wrench_missing_target", "Wrench does not contain a saved transmission.");
         add("message.torque_and_transmissions.wrench_linked", "Linked shifter to saved transmission.");
