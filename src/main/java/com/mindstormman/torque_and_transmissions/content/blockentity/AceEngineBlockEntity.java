@@ -90,7 +90,8 @@ public class AceEngineBlockEntity extends GeneratingKineticBlockEntity {
         sendData();
     }
 
-    public static float computeNextRpm(float currentRpm, float maxRpm, float horsepower, double throttlePosition, double gearLoadFactor, boolean isClutchEngaged) {
+    public static float computeNextRpm(float currentRpm, float maxRpm, float horsepower, double throttlePosition,
+            double gearLoadFactor, boolean isClutchEngaged) {
         float targetRpm = (float) (maxRpm * Mth.clamp(throttlePosition, 0.0D, 1.0D));
         double activeLoadFactor = isClutchEngaged ? 1.0D : Math.max(1.0D, gearLoadFactor);
         float rpmStep = (float) (horsepower / activeLoadFactor);
@@ -120,11 +121,10 @@ public class AceEngineBlockEntity extends GeneratingKineticBlockEntity {
                 isClutchEngaged());
 
         if (Math.abs(nextRpm - currentRpm) > 0.0001F) {
-            float previousCurrent = currentRpm;
             currentRpm = nextRpm;
             boolean reachedTarget = Math.abs(currentRpm - getTargetRpm()) <= 0.0001F;
             boolean shouldPublishNow = level.getGameTime() % NETWORK_UPDATE_INTERVAL_TICKS == 0 || reachedTarget
-                    || previousCurrent == 0.0F || currentRpm == 0.0F;
+                    || currentRpm == 0.0F;
             boolean hasMeaningfulDelta = Math.abs(currentRpm - publishedRpm) >= NETWORK_UPDATE_MIN_DELTA
                     || reachedTarget || currentRpm == 0.0F;
 
