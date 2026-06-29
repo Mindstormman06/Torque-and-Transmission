@@ -15,11 +15,13 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 public class AceEngineBlockEntity extends GeneratingKineticBlockEntity {
     private static final int NETWORK_UPDATE_INTERVAL_TICKS = 5;
     private static final float NETWORK_UPDATE_MIN_DELTA = 4.0F;
+    private static final float CLUTCH_HANDOFF_SPEED_EPSILON = 8.0F;
 
     private float currentRpm;
     private float publishedRpm;
     private BlockPos linkedTransmissionPos;
     private BlockPos linkedClutchPos;
+    private boolean wasClutchEngaged;
 
     public AceEngineBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.ACE_ENGINE.get(), pos, state);
@@ -109,6 +111,26 @@ public class AceEngineBlockEntity extends GeneratingKineticBlockEntity {
         return Mth.clamp(next, 0.0F, maxRpm);
     }
 
+    public static float computeClutchHandoffRpm(float engineRpm, float transmissionSpeed) {
+        if (Math.abs(engineRpm - transmissionSpeed) <= CLUTCH_HANDOFF_SPEED_EPSILON) {
+            return engineRpm;
+        }
+        return transmissionSpeed;
+    }
+
+    @Override
+    public void initialize() {
+        super.initialize();
+        syncTransmissionLink();
+        wasClutchEngaged = isClutchEngaged();
+        if (!hasSource() || getGeneratedSpeed() > getTheoreticalSpeed()) {
+            publishedRpm = currentRpm;
+            if (!isClutchEngaged()) {
+                updateGeneratedRotation();
+            }
+        }
+    }
+
     @Override
     public void tick() {
         super.tick();
@@ -116,13 +138,19 @@ public class AceEngineBlockEntity extends GeneratingKineticBlockEntity {
             return;
         }
 
+        boolean clutchEngaged = isClutchEngaged();
+        if (wasClutchEngaged && !clutchEngaged) {
+            synchronizeRpmWithTransmission();
+        }
+        wasClutchEngaged = clutchEngaged;
+
         float nextRpm = computeNextRpm(
                 currentRpm,
                 Config.ACE_MAX_RPM.get(),
                 Config.ACE_HORSEPOWER.get().floatValue(),
                 getThrottlePosition(),
                 getGearLoadFactor(),
-                isClutchEngaged());
+                clutchEngaged);
 
         if (Math.abs(nextRpm - currentRpm) > 0.0001F) {
             currentRpm = nextRpm;
@@ -145,12 +173,33 @@ public class AceEngineBlockEntity extends GeneratingKineticBlockEntity {
         }
     }
 
-    @Override
-    public void initialize() {
-        super.initialize();
-        if (!hasSource() || getGeneratedSpeed() > getTheoreticalSpeed()) {
-            publishedRpm = currentRpm;
-            updateGeneratedRotation();
+    private void synchronizeRpmWithTransmission() {
+        if (linkedTransmissionPos == null) {
+            return;
+        }
+        if (!(level.getBlockEntity(linkedTransmissionPos) instanceof TransmissionBlockEntity transmission)) {
+            return;
+        }
+
+        float transmissionSpeed = transmission.getSpeed();
+        float handoffRpm = computeClutchHandoffRpm(publishedRpm, transmissionSpeed);
+        if (Math.abs(handoffRpm - publishedRpm) <= 0.0001F) {
+            return;
+        }
+
+        currentRpm = handoffRpm;
+        publishedRpm = handoffRpm;
+        updateGeneratedRotation();
+        sendData();
+        setChanged();
+    }
+
+    private void syncTransmissionLink() {
+        if (level == null || level.isClientSide || linkedTransmissionPos == null) {
+            return;
+        }
+        if (level.getBlockEntity(linkedTransmissionPos) instanceof TransmissionBlockEntity transmission) {
+            transmission.setAceLinked(true);
         }
     }
 
@@ -189,10 +238,6 @@ public class AceEngineBlockEntity extends GeneratingKineticBlockEntity {
         publishedRpm = tag.contains("publishedRpm") ? tag.getFloat("publishedRpm") : currentRpm;
         linkedTransmissionPos = tag.contains("linkedTransmission") ? BlockPos.of(tag.getLong("linkedTransmission")) : null;
         linkedClutchPos = tag.contains("linkedClutch") ? BlockPos.of(tag.getLong("linkedClutch")) : null;
-
-        if (level != null && !level.isClientSide && linkedTransmissionPos != null
-                && level.getBlockEntity(linkedTransmissionPos) instanceof TransmissionBlockEntity transmission) {
-            transmission.setAceLinked(true);
-        }
+        wasClutchEngaged = isClutchEngaged();
     }
 }

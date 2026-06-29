@@ -174,6 +174,16 @@ public final class TransmissionGameTests {
     }
 
     @GameTest(template = "empty5x5", templateNamespace = "minecraft")
+    public static void clutchHandoffMatchesTransmissionSpeed(GameTestHelper helper) {
+        float next = AceEngineBlockEntity.computeClutchHandoffRpm(200.0F, 0.0F);
+        helper.succeedIf(() -> {
+            if (Math.abs(next) > 0.001F) {
+                throw new AssertionError("Expected ACE to match stationary transmission speed when clutch releases.");
+            }
+        });
+    }
+
+    @GameTest(template = "empty5x5", templateNamespace = "minecraft")
     public static void aceNoLoadRampUsesClutchEngagedFactor(GameTestHelper helper) {
         float next = AceEngineBlockEntity.computeNextRpm(0.0F, 256.0F, 8.0F, 1.0D, 5.0D, true);
         helper.succeedIf(() -> {

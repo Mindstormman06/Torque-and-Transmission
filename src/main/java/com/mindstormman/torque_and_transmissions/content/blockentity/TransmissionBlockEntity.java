@@ -114,6 +114,10 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         markDirtyAndSync();
     }
 
+    public boolean isClutchEngaged() {
+        return isClutchReadyForShift();
+    }
+
     public boolean isClutchReadyForShift() {
         if (level == null || linkedClutchPos == null) {
             return false;
@@ -144,7 +148,30 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         }
         aceLinked = linked;
         markDirtyAndSync();
-        requestSpeedUpdate();
+    }
+
+    @Override
+    public void initialize() {
+        super.initialize();
+        appliedRatio = getEffectiveRatio();
+        updateSpeed = false;
+    }
+
+    @Override
+    public void remove() {
+        if (level != null && !level.isClientSide) {
+            aceLinked = false;
+            updateSpeed = false;
+        }
+        super.remove();
+    }
+
+    @Override
+    public Direction getSourceFacing() {
+        if (!hasSource()) {
+            return Direction.UP;
+        }
+        return super.getSourceFacing();
     }
 
     private double getThrottleFactor() {
@@ -178,25 +205,31 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
             return false;
         }
 
+        boolean shifted = false;
+
         if (direction < 0 && selectedGear == 0 && !reverse) {
             reverse = true;
-            markDirtyAndSync();
-            return true;
-        }
-
-        if (reverse && direction > 0) {
+            shifted = true;
+        } else if (reverse && direction > 0) {
             reverse = false;
-            markDirtyAndSync();
-            return true;
+            shifted = true;
+        } else {
+            reverse = false;
+            int maxForwardGear = GearRatios.getMaxForwardGearIndex();
+            int nextGear = Math.clamp(selectedGear + Integer.signum(direction), 0, maxForwardGear);
+            if (nextGear != selectedGear) {
+                selectedGear = nextGear;
+                shifted = true;
+            }
         }
 
-        reverse = false;
-        int maxForwardGear = GearRatios.getMaxForwardGearIndex();
-        int nextGear = Math.clamp(selectedGear + Integer.signum(direction), 0, maxForwardGear);
-        if (nextGear == selectedGear) {
+        if (!shifted) {
             return false;
         }
-        selectedGear = nextGear;
+
+        if (isClutchEngaged()) {
+            appliedRatio = getEffectiveRatio();
+        }
         markDirtyAndSync();
         return true;
     }
@@ -208,21 +241,30 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
             return;
         }
 
+        updateAppliedRatio();
+    }
+
+    private void updateAppliedRatio() {
         double targetRatio = getEffectiveRatio();
-        if (Math.abs(appliedRatio - targetRatio) <= RATIO_EPSILON) {
+
+        if (isClutchEngaged()) {
             if (appliedRatio != targetRatio) {
                 appliedRatio = targetRatio;
-                requestSpeedUpdate();
+                setChanged();
             }
             return;
         }
 
-        double previousApplied = appliedRatio;
-        appliedRatio += (targetRatio - appliedRatio) * Config.GEAR_RATIO_BLEND_RATE.get();
-        if (Math.abs(appliedRatio - previousApplied) > RATIO_EPSILON) {
-            requestSpeedUpdate();
-            setChanged();
+        if (Math.abs(appliedRatio - targetRatio) <= RATIO_EPSILON) {
+            if (appliedRatio != targetRatio) {
+                appliedRatio = targetRatio;
+                setChanged();
+            }
+            return;
         }
+
+        appliedRatio += (targetRatio - appliedRatio) * Config.GEAR_RATIO_BLEND_RATE.get();
+        setChanged();
     }
 
     private void markDirtyAndSync() {
@@ -263,5 +305,6 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         aceLinked = tag.getBoolean("aceLinked");
         appliedRatio = tag.contains("appliedRatio") ? tag.getDouble("appliedRatio") : getEffectiveRatio();
         linkedClutchPos = tag.contains("linkedClutch") ? BlockPos.of(tag.getLong("linkedClutch")) : null;
+        updateSpeed = false;
     }
 }
