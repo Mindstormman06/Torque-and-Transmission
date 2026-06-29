@@ -3,9 +3,9 @@ package com.mindstormman.torque_and_transmissions.content.blockentity;
 import java.util.List;
 
 import com.mindstormman.torque_and_transmissions.Config;
-import com.mindstormman.torque_and_transmissions.content.block.TransmissionBlock;
 import com.mindstormman.torque_and_transmissions.mechanics.GearRatios;
 import com.mindstormman.torque_and_transmissions.registry.ModBlockEntities;
+import com.simibubi.create.content.kinetics.transmission.ClutchBlock;
 import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity;
 
 import net.minecraft.core.BlockPos;
@@ -16,11 +16,15 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class TransmissionBlockEntity extends SplitShaftBlockEntity {
+    private static final double RATIO_EPSILON = 0.0001D;
+
     private int selectedGear;
     private boolean reverse;
     private int inputTargetRpm;
     private boolean acceleratorControlled;
     private boolean aceLinked;
+    private double appliedRatio = 1.0D;
+    private BlockPos linkedClutchPos;
 
     public TransmissionBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModBlockEntities.TRANSMISSION.get(), pos, blockState);
@@ -54,8 +58,12 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         return ratios.get(index);
     }
 
+    public double getAppliedRatio() {
+        return appliedRatio;
+    }
+
     public double getStressMultiplier() {
-        double ratioMagnitude = Math.abs(getEffectiveRatio());
+        double ratioMagnitude = Math.abs(appliedRatio);
         if (ratioMagnitude <= 0.0D) {
             return 1.0D;
         }
@@ -67,7 +75,7 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
     }
 
     public int getEffectiveOutputRpm() {
-        return (int) Math.round(getInputTargetRpm() * getEffectiveRatio());
+        return (int) Math.round(getInputTargetRpm() * appliedRatio);
     }
 
     public int getThrottlePercent() {
@@ -101,6 +109,22 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         return getSourceFacing().getName();
     }
 
+    public void setLinkedClutchPos(BlockPos pos) {
+        linkedClutchPos = pos;
+        markDirtyAndSync();
+    }
+
+    public boolean isClutchReadyForShift() {
+        if (level == null || linkedClutchPos == null) {
+            return false;
+        }
+        BlockState clutchState = level.getBlockState(linkedClutchPos);
+        if (!(clutchState.getBlock() instanceof ClutchBlock)) {
+            return false;
+        }
+        return clutchState.getValue(BlockStateProperties.POWERED);
+    }
+
     public void setInputTargetRpm(int rpm) {
         int clamped = Math.clamp(rpm, 0, Config.MAX_TARGET_RPM.get());
         if (acceleratorControlled && inputTargetRpm == clamped) {
@@ -110,7 +134,7 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         inputTargetRpm = clamped;
         markDirtyAndSync();
         if (!aceLinked) {
-            requestKineticRefresh();
+            requestSpeedUpdate();
         }
     }
 
@@ -120,7 +144,7 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         }
         aceLinked = linked;
         markDirtyAndSync();
-        requestKineticRefresh();
+        requestSpeedUpdate();
     }
 
     private double getThrottleFactor() {
@@ -142,33 +166,63 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
             return 1.0F;
         }
         double throttleMultiplier = aceLinked ? 1.0D : getThrottleFactor();
-        return (float) (getEffectiveRatio() * throttleMultiplier);
+        return (float) (appliedRatio * throttleMultiplier);
     }
 
-    public void shiftBy(int direction) {
+    public boolean shiftBy(int direction) {
         if (direction == 0) {
-            return;
+            return false;
+        }
+
+        if (Config.REQUIRE_CLUTCH_FOR_SHIFT.get() && !isClutchReadyForShift()) {
+            return false;
         }
 
         if (direction < 0 && selectedGear == 0 && !reverse) {
             reverse = true;
             markDirtyAndSync();
-            requestKineticRefresh();
-            return;
+            return true;
         }
 
         if (reverse && direction > 0) {
             reverse = false;
             markDirtyAndSync();
-            requestKineticRefresh();
-            return;
+            return true;
         }
 
         reverse = false;
         int maxForwardGear = GearRatios.getMaxForwardGearIndex();
-        selectedGear = Math.clamp(selectedGear + Integer.signum(direction), 0, maxForwardGear);
+        int nextGear = Math.clamp(selectedGear + Integer.signum(direction), 0, maxForwardGear);
+        if (nextGear == selectedGear) {
+            return false;
+        }
+        selectedGear = nextGear;
         markDirtyAndSync();
-        requestKineticRefresh();
+        return true;
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+
+        double targetRatio = getEffectiveRatio();
+        if (Math.abs(appliedRatio - targetRatio) <= RATIO_EPSILON) {
+            if (appliedRatio != targetRatio) {
+                appliedRatio = targetRatio;
+                requestSpeedUpdate();
+            }
+            return;
+        }
+
+        double previousApplied = appliedRatio;
+        appliedRatio += (targetRatio - appliedRatio) * Config.GEAR_RATIO_BLEND_RATE.get();
+        if (Math.abs(appliedRatio - previousApplied) > RATIO_EPSILON) {
+            requestSpeedUpdate();
+            setChanged();
+        }
     }
 
     private void markDirtyAndSync() {
@@ -178,13 +232,11 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         }
     }
 
-    private void requestKineticRefresh() {
+    private void requestSpeedUpdate() {
         if (level == null || level.isClientSide()) {
             return;
         }
-        if (getBlockState().getBlock() instanceof TransmissionBlock transmissionBlock) {
-            transmissionBlock.refreshKineticNetwork(level, getBlockPos());
-        }
+        updateSpeed = true;
     }
 
     @Override
@@ -195,6 +247,10 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         tag.putInt("inputTargetRpm", inputTargetRpm);
         tag.putBoolean("acceleratorControlled", acceleratorControlled);
         tag.putBoolean("aceLinked", aceLinked);
+        tag.putDouble("appliedRatio", appliedRatio);
+        if (linkedClutchPos != null) {
+            tag.putLong("linkedClutch", linkedClutchPos.asLong());
+        }
     }
 
     @Override
@@ -205,5 +261,7 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity {
         inputTargetRpm = tag.getInt("inputTargetRpm");
         acceleratorControlled = tag.getBoolean("acceleratorControlled");
         aceLinked = tag.getBoolean("aceLinked");
+        appliedRatio = tag.contains("appliedRatio") ? tag.getDouble("appliedRatio") : getEffectiveRatio();
+        linkedClutchPos = tag.contains("linkedClutch") ? BlockPos.of(tag.getLong("linkedClutch")) : null;
     }
 }

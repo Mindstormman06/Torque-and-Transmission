@@ -25,6 +25,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("message.torque_and_transmissions.shifter_not_linked", "Shifter is not linked to a transmission.");
         add("message.torque_and_transmissions.link_target_missing", "Linked transmission is missing.");
         add("message.torque_and_transmissions.shifted", "Shifted to %s (ratio %s, stress x%s, output %s RPM, throttle %s%%)");
+        add("message.torque_and_transmissions.shift_requires_clutch", "Power the linked clutch before shifting.");
+        add("message.torque_and_transmissions.shift_blocked", "Unable to shift right now.");
         add("message.torque_and_transmissions.transmission_status", "Transmission %s (ratio %s, stress x%s, output %s RPM, throttle %s%%, axis %s, source %s)");
         add("message.torque_and_transmissions.wrench_stored", "Stored transmission link target.");
         add("message.torque_and_transmissions.wrench_stored_clutch", "Stored clutch link target.");
@@ -45,5 +47,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("torque_and_transmissions.configuration.maxTargetRpm", "Maximum Target RPM");
         add("torque_and_transmissions.configuration.aceMaxRpm", "ACE Maximum RPM");
         add("torque_and_transmissions.configuration.aceHorsepower", "ACE Horsepower");
+        add("torque_and_transmissions.configuration.gearRatioBlendRate", "Gear Ratio Blend Rate");
+        add("torque_and_transmissions.configuration.requireClutchForShift", "Require Clutch For Shift");
     }
 }

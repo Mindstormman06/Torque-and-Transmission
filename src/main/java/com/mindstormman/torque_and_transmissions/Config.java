@@ -26,6 +26,14 @@ public class Config {
             .comment("Base ACE acceleration/deceleration step at load factor 1.0 (RPM per tick).")
             .defineInRange("aceHorsepower", 4.0D, 0.1D, 512.0D);
 
+    public static final ModConfigSpec.DoubleValue GEAR_RATIO_BLEND_RATE = BUILDER
+            .comment("Fraction of the remaining ratio error applied each tick when shifting (0.01-1.0). Lower values shift more gradually.")
+            .defineInRange("gearRatioBlendRate", 0.08D, 0.01D, 1.0D);
+
+    public static final ModConfigSpec.BooleanValue REQUIRE_CLUTCH_FOR_SHIFT = BUILDER
+            .comment("When true, the linked Create clutch must be powered (disengaged) before gears can change.")
+            .define("requireClutchForShift", true);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     private static boolean isPositiveNumber(final Object obj) {

@@ -60,6 +60,9 @@ public class MechanicsWrenchItem extends Item {
 
             if (!level.isClientSide() && context.getPlayer() != null) {
                 shifter.setLinkedTransmissionPos(storedPos.get());
+                if (level.getBlockEntity(storedPos.get()) instanceof TransmissionBlockEntity transmission) {
+                    getStoredClutchPos(stack).ifPresent(transmission::setLinkedClutchPos);
+                }
                 context.getPlayer().displayClientMessage(Component.translatable("message.torque_and_transmissions.wrench_linked"), true);
             }
             return InteractionResult.sidedSuccess(level.isClientSide());
@@ -92,9 +95,14 @@ public class MechanicsWrenchItem extends Item {
 
             if (!level.isClientSide() && context.getPlayer() != null) {
                 aceEngine.setLinkedTransmissionPos(storedTransmission.get());
+                if (level.getBlockEntity(storedTransmission.get()) instanceof TransmissionBlockEntity transmission) {
+                    getStoredClutchPos(stack).ifPresent(pos -> {
+                        aceEngine.setLinkedClutchPos(pos);
+                        transmission.setLinkedClutchPos(pos);
+                    });
+                }
                 Optional<BlockPos> storedClutch = getStoredClutchPos(stack);
                 if (storedClutch.isPresent()) {
-                    aceEngine.setLinkedClutchPos(storedClutch.get());
                     context.getPlayer().displayClientMessage(Component.translatable("message.torque_and_transmissions.wrench_linked_ace_full"), true);
                 } else {
                     context.getPlayer().displayClientMessage(Component.translatable("message.torque_and_transmissions.wrench_linked_ace_no_clutch"), true);

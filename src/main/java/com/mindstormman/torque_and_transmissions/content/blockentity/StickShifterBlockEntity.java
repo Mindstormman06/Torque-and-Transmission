@@ -2,6 +2,7 @@ package com.mindstormman.torque_and_transmissions.content.blockentity;
 
 import java.util.Optional;
 
+import com.mindstormman.torque_and_transmissions.Config;
 import com.mindstormman.torque_and_transmissions.registry.ModBlockEntities;
 
 import net.minecraft.core.BlockPos;
@@ -41,7 +42,16 @@ public class StickShifterBlockEntity extends BlockEntity {
             return false;
         }
 
-        transmission.shiftBy(direction);
+        if (!transmission.shiftBy(direction)) {
+            if (Config.REQUIRE_CLUTCH_FOR_SHIFT.get()
+                    && !transmission.isClutchReadyForShift()) {
+                player.displayClientMessage(Component.translatable("message.torque_and_transmissions.shift_requires_clutch"), true);
+            } else {
+                player.displayClientMessage(Component.translatable("message.torque_and_transmissions.shift_blocked"), true);
+            }
+            return false;
+        }
+
         player.displayClientMessage(
                 Component.translatable(
                         "message.torque_and_transmissions.shifted",

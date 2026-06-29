@@ -2,26 +2,21 @@ package com.mindstormman.torque_and_transmissions.content.block;
 
 import com.mindstormman.torque_and_transmissions.content.blockentity.TransmissionBlockEntity;
 import com.mindstormman.torque_and_transmissions.registry.ModBlockEntities;
-import com.simibubi.create.content.kinetics.RotationPropagator;
 import com.simibubi.create.content.kinetics.base.AbstractEncasedShaftBlock;
-import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.block.IBE;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.ticks.TickPriority;
 
 public class TransmissionBlock extends AbstractEncasedShaftBlock implements IBE<TransmissionBlockEntity> {
     public TransmissionBlock(Properties properties) {
@@ -68,7 +63,7 @@ public class TransmissionBlock extends AbstractEncasedShaftBlock implements IBE<
                     Component.translatable(
                             "message.torque_and_transmissions.transmission_status",
                             transmission.getGearLabel(),
-                            String.format("%.2f", transmission.getEffectiveRatio()),
+                            String.format("%.2f", transmission.getAppliedRatio()),
                             String.format("%.2f", transmission.getStressMultiplier()),
                             transmission.getEffectiveOutputRpm(),
                             transmission.getThrottlePercent(),
@@ -77,23 +72,6 @@ public class TransmissionBlock extends AbstractEncasedShaftBlock implements IBE<
                     true);
         }
         return InteractionResult.CONSUME;
-    }
-
-    public void refreshKineticNetwork(Level level, BlockPos pos) {
-        BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (!(blockEntity instanceof KineticBlockEntity kineticBlockEntity)) {
-            return;
-        }
-        RotationPropagator.handleRemoved(level, pos, kineticBlockEntity);
-        level.scheduleTick(pos, this, 1, TickPriority.EXTREMELY_HIGH);
-    }
-
-    @Override
-    public void tick(BlockState state, ServerLevel level, BlockPos pos, net.minecraft.util.RandomSource random) {
-        BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof KineticBlockEntity kineticBlockEntity) {
-            RotationPropagator.handleAdded(level, pos, kineticBlockEntity);
-        }
     }
 
     @Override

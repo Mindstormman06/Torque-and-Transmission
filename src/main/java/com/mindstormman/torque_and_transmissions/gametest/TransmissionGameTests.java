@@ -6,11 +6,13 @@ import com.mindstormman.torque_and_transmissions.content.blockentity.AceEngineBl
 import com.mindstormman.torque_and_transmissions.content.blockentity.StickShifterBlockEntity;
 import com.mindstormman.torque_and_transmissions.content.blockentity.TransmissionBlockEntity;
 import com.mindstormman.torque_and_transmissions.registry.ModBlocks;
+import com.simibubi.create.AllBlocks;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -20,12 +22,26 @@ public final class TransmissionGameTests {
     private TransmissionGameTests() {
     }
 
+    private static void prepareShiftableTransmission(GameTestHelper helper, BlockPos transmissionPos, BlockPos clutchPos) {
+        helper.setBlock(transmissionPos, ModBlocks.TRANSMISSION.get());
+        helper.setBlock(
+                clutchPos,
+                AllBlocks.CLUTCH.get()
+                        .defaultBlockState()
+                        .setValue(BlockStateProperties.AXIS, Direction.Axis.X)
+                        .setValue(BlockStateProperties.POWERED, true));
+
+        TransmissionBlockEntity transmission = (TransmissionBlockEntity) helper.getBlockEntity(transmissionPos);
+        transmission.setLinkedClutchPos(helper.absolutePos(clutchPos));
+    }
+
     @GameTest(template = "empty5x5", templateNamespace = "minecraft")
     public static void wrenchLinkAndShiftAppliesGear(GameTestHelper helper) {
         BlockPos transmissionPos = new BlockPos(1, 1, 1);
         BlockPos shifterPos = new BlockPos(2, 1, 1);
+        BlockPos clutchPos = new BlockPos(1, 1, 2);
 
-        helper.setBlock(transmissionPos, ModBlocks.TRANSMISSION.get());
+        prepareShiftableTransmission(helper, transmissionPos, clutchPos);
         helper.setBlock(shifterPos, ModBlocks.STICK_SHIFTER.get());
 
         TransmissionBlockEntity transmission = (TransmissionBlockEntity) helper.getBlockEntity(transmissionPos);
@@ -44,7 +60,9 @@ public final class TransmissionGameTests {
     @GameTest(template = "empty5x5", templateNamespace = "minecraft")
     public static void reverseGearFlipsRatioAndStressMultiplier(GameTestHelper helper) {
         BlockPos transmissionPos = new BlockPos(1, 1, 1);
-        helper.setBlock(transmissionPos, ModBlocks.TRANSMISSION.get());
+        BlockPos clutchPos = new BlockPos(1, 1, 2);
+
+        prepareShiftableTransmission(helper, transmissionPos, clutchPos);
 
         TransmissionBlockEntity transmission = (TransmissionBlockEntity) helper.getBlockEntity(transmissionPos);
         transmission.shiftBy(-1);
@@ -65,7 +83,9 @@ public final class TransmissionGameTests {
     @GameTest(template = "empty5x5", templateNamespace = "minecraft")
     public static void splitShaftModifierUsesSelectedGearRatio(GameTestHelper helper) {
         BlockPos transmissionPos = new BlockPos(1, 1, 1);
-        helper.setBlock(transmissionPos, ModBlocks.TRANSMISSION.get());
+        BlockPos clutchPos = new BlockPos(1, 1, 2);
+
+        prepareShiftableTransmission(helper, transmissionPos, clutchPos);
 
         TransmissionBlockEntity transmission = (TransmissionBlockEntity) helper.getBlockEntity(transmissionPos);
         transmission.shiftBy(1);
@@ -85,11 +105,52 @@ public final class TransmissionGameTests {
     }
 
     @GameTest(template = "empty5x5", templateNamespace = "minecraft")
+    public static void shiftBlockedWithoutPoweredClutch(GameTestHelper helper) {
+        BlockPos transmissionPos = new BlockPos(1, 1, 1);
+        helper.setBlock(transmissionPos, ModBlocks.TRANSMISSION.get());
+
+        TransmissionBlockEntity transmission = (TransmissionBlockEntity) helper.getBlockEntity(transmissionPos);
+        boolean shifted = transmission.shiftBy(1);
+
+        helper.succeedIf(() -> {
+            if (shifted) {
+                throw new AssertionError("Expected shift to be blocked without a powered linked clutch.");
+            }
+            if (transmission.getSelectedGear() != 0) {
+                throw new AssertionError("Gear should remain unchanged when shift is blocked.");
+            }
+        });
+    }
+
+    @GameTest(template = "empty5x5", templateNamespace = "minecraft")
+    public static void appliedRatioBlendsTowardSelectedGear(GameTestHelper helper) {
+        BlockPos transmissionPos = new BlockPos(1, 1, 1);
+        BlockPos clutchPos = new BlockPos(1, 1, 2);
+
+        prepareShiftableTransmission(helper, transmissionPos, clutchPos);
+
+        TransmissionBlockEntity transmission = (TransmissionBlockEntity) helper.getBlockEntity(transmissionPos);
+        transmission.shiftBy(1);
+
+        helper.succeedIf(() -> {
+            double targetRatio = transmission.getEffectiveRatio();
+            double appliedRatio = transmission.getAppliedRatio();
+            if (appliedRatio >= targetRatio) {
+                throw new AssertionError("Expected applied ratio to start below the selected gear ratio.");
+            }
+            if (appliedRatio <= 0.0D) {
+                throw new AssertionError("Applied ratio should remain positive while blending upward.");
+            }
+        });
+    }
+
+    @GameTest(template = "empty5x5", templateNamespace = "minecraft")
     public static void acceleratorLinkAndRpmAffectsTransmissionOutput(GameTestHelper helper) {
         BlockPos transmissionPos = new BlockPos(1, 1, 1);
         BlockPos acceleratorPos = new BlockPos(2, 1, 1);
+        BlockPos clutchPos = new BlockPos(1, 1, 2);
 
-        helper.setBlock(transmissionPos, ModBlocks.TRANSMISSION.get());
+        prepareShiftableTransmission(helper, transmissionPos, clutchPos);
         helper.setBlock(acceleratorPos, ModBlocks.ACCELERATOR.get());
 
         TransmissionBlockEntity transmission = (TransmissionBlockEntity) helper.getBlockEntity(transmissionPos);

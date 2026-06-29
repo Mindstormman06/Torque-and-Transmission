@@ -86,6 +86,10 @@ public class AceEngineBlockEntity extends GeneratingKineticBlockEntity {
 
     public void setLinkedClutchPos(BlockPos pos) {
         linkedClutchPos = pos;
+        if (level != null && linkedTransmissionPos != null
+                && level.getBlockEntity(linkedTransmissionPos) instanceof TransmissionBlockEntity transmission) {
+            transmission.setLinkedClutchPos(pos);
+        }
         setChanged();
         sendData();
     }
